@@ -2,7 +2,6 @@
     "name": "tonyapps/module-b2b",
     "description": "B2B company accounts for Magento 2.4 Open Source (companies, hierarchy, roles, payment restrictions, store credit)",
     "type": "magento2-module",
-    "version": "0.1.0",
     "license": "GPL-3.0-or-later",
     "require": {
         "php": "~8.3.0||~8.4.0",

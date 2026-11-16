@@ -9,7 +9,7 @@ This file is the agreed scope — update it, don't re-litigate it. Merchant-faci
 - **All six phases built** (foundation, storefront accounts, roles & permissions, hierarchy roll-up, payment
   restrictions, store credit). Review fixes 2026-10-28 and 2026-10-30 applied; email redesign and QA fixes 2026-11-09;
   B2b core e2e (`b2b-company.spec.js` in the workspace `../e2e/tests/` Playwright suite, 6 tests) added 2026-11-10.
-- Module: `Tonyapps_B2b` / `tonyapps/module-b2b` / v0.1.0 / GPL-3.0-or-later.
+- Module: `Tonyapps_B2b` / `tonyapps/module-b2b` / 1.0.0 / GPL-3.0-or-later.
 
 ### Environment (as developed)
 
