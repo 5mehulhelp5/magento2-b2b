@@ -317,7 +317,7 @@ Open questions (status as of the last README):
 Other limitations:
 - Not built from the plan: company-grid member count; Company column in the customer grid (needs a `customer_grid`
   indexer fieldset extension).
-- Hyvä not supported (see WORKPLAN item 5).
+- Hyvä: every storefront page works since 2026-11-16 (Company Orders 500 fixed), but templates still use Luma classes only, so buttons/tables are unstyled there; styling is WORKPLAN item 5 step 4. Checkout on Hyvä is the Luma fallback checkout, where the store-credit method works.
 - Per WORKPLAN QA log 2026-11-10: child companies created from the storefront can't be deleted there (e2e runs leave
   "E2E Branch" rows; clean with SQL).
 
@@ -346,6 +346,7 @@ vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/Tonyapps/B2b/Test
 
 ## Change history
 
+- **2026-11-16** — *Company Orders* gave a 500 on Hyvä: Hyvä's layout runs `Orders::_prepareLayout()` twice and the second `createBlock()` of `tonyapps_b2b.company.orders.pager` threw. The block now reuses an existing pager (`OrdersPagerTest`).
 - **2026-11-16** — Released as free software under GPL-3.0-or-later (owner decision): `LICENSE` added,
   `composer.json` license changed from `proprietary`, License section in the README.
 ### 2026-11-15 storefront links in admin-sent emails

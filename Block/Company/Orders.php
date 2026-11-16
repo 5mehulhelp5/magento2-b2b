@@ -114,7 +114,9 @@ class Orders extends Template
         parent::_prepareLayout();
 
         /** @var Pager $pager */
-        $pager = $this->getLayout()->createBlock(Pager::class, 'tonyapps_b2b.company.orders.pager');
+        // Hyvä's layout runs this twice, and a second createBlock() with the same name throws.
+        $pager = $this->getLayout()->getBlock('tonyapps_b2b.company.orders.pager')
+            ?: $this->getLayout()->createBlock(Pager::class, 'tonyapps_b2b.company.orders.pager');
         $pager->setLimit(self::PAGE_SIZE)->setCollection($this->getOrders());
         $this->setChild('pager', $pager);
 
