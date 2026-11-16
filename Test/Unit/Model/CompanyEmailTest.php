@@ -9,6 +9,7 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Translate\Inline\StateInterface;
+use Magento\Framework\Url;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -61,9 +62,43 @@ class CompanyEmailTest extends TestCase
             $this->createMock(CustomerRepositoryInterface::class),
             $this->createMock(CustomerNameGenerationInterface::class),
             $backendUrl,
-            $this->createMock(LoggerInterface::class)
+            $this->createMock(LoggerInterface::class),
+            $this->createMock(Url::class)
         ))->sendNewCompanyNotification($company);
 
         self::assertSame('https://shop.test/admin/tonyapps_b2b/company/edit/entity_id/4/', $vars['admin_url']);
+    }
+
+    public function testTheApprovedEmailLinksToTheStorefrontCompanyPageEvenFromTheAdmin(): void
+    {
+        $store = $this->createMock(Store::class);
+        $store->method('getId')->willReturn(1);
+        $storeManager = $this->createMock(StoreManagerInterface::class);
+        $storeManager->method('getStore')->willReturn($store);
+        // The storefront builder for the store the email goes out from, not the (admin) UrlInterface.
+        $frontendUrl = $this->createMock(Url::class);
+        $frontendUrl->expects(self::once())->method('setScope')->with($store)->willReturnSelf();
+        $frontendUrl->expects(self::once())->method('getUrl')
+            ->with('b2b/company/index', ['_nosid' => true])
+            ->willReturn('https://shop.test/b2b/company/index/');
+        $store->expects(self::never())->method('getUrl');
+
+        $company = $this->createMock(Company::class);
+        $company->method('getName')->willReturn('Acme');
+        $company->method('getAdminCustomerId')->willReturn(null);
+
+        $vars = (new CompanyEmail(
+            $this->createMock(TransportBuilder::class),
+            $storeManager,
+            $this->createMock(StateInterface::class),
+            $this->createMock(Config::class),
+            $this->createMock(CustomerRepositoryInterface::class),
+            $this->createMock(CustomerNameGenerationInterface::class),
+            $this->createMock(BackendUrlInterface::class),
+            $this->createMock(LoggerInterface::class),
+            $frontendUrl
+        ))->getDecisionVariables($company, true);
+
+        self::assertSame('https://shop.test/b2b/company/index/', $vars['company_url']);
     }
 }

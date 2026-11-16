@@ -9,6 +9,7 @@ use Magento\Customer\Api\CustomerNameGenerationInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Translate\Inline\StateInterface;
+use Magento\Framework\Url;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -37,7 +38,9 @@ class CompanyEmail
         private readonly CustomerNameGenerationInterface $customerNameGeneration,
         // The admin URL builder: the storefront one points the link at a frontend route (404).
         private readonly BackendUrlInterface $urlBuilder,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        // Storefront URL builder: the injected UrlInterface is the admin one in admin requests (links get the admin path and a secret key).
+        private readonly Url $frontendUrl
     ) {
     }
 
@@ -47,25 +50,36 @@ class CompanyEmail
     public function sendNewCompanyNotification(CompanyInterface $company): void
     {
         $store = $this->getStore();
-        $admin = $this->getAdminName($company);
 
         $this->send(
             $this->config->getNewCompanyTemplate((int)$store->getId()),
             (string)$store->getConfig('trans_email/ident_' . self::NOTIFICATION_IDENTITY . '/email'),
             (string)$store->getConfig('trans_email/ident_' . self::NOTIFICATION_IDENTITY . '/name'),
             $store,
-            [
-                'company_name' => (string)$company->getName(),
-                'company_email' => (string)$company->getData(CompanyInterface::EMAIL),
-                'admin_name' => $admin['name'],
-                'admin_email' => $admin['email'],
-                'admin_url' => $this->urlBuilder->getUrl(
-                    'tonyapps_b2b/company/edit',
-                    // No secret key: it would be minted for this request, not the reader's admin session.
-                    ['entity_id' => $company->getId(), '_nosid' => true, '_nosecret' => true]
-                ),
-            ]
+            $this->getNewCompanyVariables($company)
         );
+    }
+
+    /**
+     * Template variables of the "new company" email; also the Email Designer's real-data preview.
+     *
+     * @return array<string, string>
+     */
+    public function getNewCompanyVariables(CompanyInterface $company): array
+    {
+        $admin = $this->getAdminName($company);
+
+        return [
+            'company_name' => (string)$company->getName(),
+            'company_email' => (string)$company->getData(CompanyInterface::EMAIL),
+            'admin_name' => $admin['name'],
+            'admin_email' => $admin['email'],
+            'admin_url' => $this->urlBuilder->getUrl(
+                'tonyapps_b2b/company/edit',
+                // No secret key: it would be minted for this request, not the reader's admin session.
+                ['entity_id' => $company->getId(), '_nosid' => true, '_nosecret' => true]
+            ),
+        ];
     }
 
     public function sendApproved(CompanyInterface $company): void
@@ -86,14 +100,6 @@ class CompanyEmail
             return;
         }
 
-        $templateVars = [
-            'company_name' => (string)$company->getName(),
-            'admin_name' => $admin['name'],
-        ];
-        if ($approved) {
-            $templateVars['company_url'] = $store->getUrl('b2b/company/index');
-        }
-
         $this->send(
             $approved
                 ? $this->config->getApprovedTemplate((int)$store->getId())
@@ -101,8 +107,27 @@ class CompanyEmail
             $admin['email'],
             $admin['name'],
             $store,
-            $templateVars
+            $this->getDecisionVariables($company, $approved)
         );
+    }
+
+    /**
+     * Template variables of the approved/rejected email; also the Email Designer's real-data preview.
+     *
+     * @return array<string, string>
+     */
+    public function getDecisionVariables(CompanyInterface $company, bool $approved): array
+    {
+        $templateVars = [
+            'company_name' => (string)$company->getName(),
+            'admin_name' => $this->getAdminName($company)['name'],
+        ];
+        if ($approved) {
+            $templateVars['company_url'] = $this->frontendUrl->setScope($this->getStore())
+                ->getUrl('b2b/company/index', ['_nosid' => true]);
+        }
+
+        return $templateVars;
     }
 
     /**
@@ -163,6 +188,12 @@ class CompanyEmail
             'name' => $this->customerNameGeneration->getCustomerName($customer),
             'email' => (string)$customer->getEmail(),
         ];
+    }
+
+    /** The store the company emails go out from; also the Email Designer's real-data preview. */
+    public function getStoreId(): int
+    {
+        return (int)$this->getStore()->getId();
     }
 
     /**

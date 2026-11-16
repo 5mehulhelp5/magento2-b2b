@@ -181,6 +181,9 @@ allow/deny, mirroring Magento's ACL rule table) was **not built** — see Decisi
 - Email Designer (`etc/di.xml`, `BlockPool`): block `b2b_company_details` (details table, new-company email); starter
   designs in `view/adminhtml/email_designer/company_{new,approved,rejected}.mjml` (the approved/rejected boxes are
   editable text, not blocks).
+- Email Designer real-data preview (`etc/di.xml`, `PreviewPool`): `Model\EmailPreview` offers recent companies
+  (approved email: approved companies, rejected email: rejected ones, falling back to any company); variables come from
+  `CompanyEmail::getNewCompanyVariables()` / `getDecisionVariables()`, which the sender itself uses. `getStoreId()` returns the store it is sent from. Read-only.
 
 **Admin ACL** (`etc/acl.xml`): `Magento_Customer::customer` › `Tonyapps_B2b::companies` (Companies) ›
 `Tonyapps_B2b::credit` (Adjust Store Credit); `Magento_Config::config` › `Tonyapps_B2b::config`. Assigning a company
@@ -342,6 +345,14 @@ vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/Tonyapps/B2b/Test
 - Email screenshots live in `docs/emails/` (export-ignored from the Composer package via `.gitattributes`).
 
 ## Change history
+
+### 2026-11-15 storefront links in admin-sent emails
+Built in an admin request (including the Email Designer preview), `company_url` in the approved email came out as an admin link with a secret key, because `Store::getUrl()` uses the area's `UrlInterface`. `CompanyEmail` now builds storefront links with its own non-shared `Magento\Framework\Url` (`frontendUrl`, `etc/di.xml`) scoped to the email's store; tests in `CompanyEmailTest`.
+
+### 2026-11-15 Email Designer real-data preview
+Added `Model\EmailPreview` for the Email Designer's real-data preview and test send of the three company emails.
+The variables moved into `CompanyEmail::getNewCompanyVariables()` and `getDecisionVariables()`, which the sender and
+the preview share; sending unchanged.
 
 ### 2026-11-13 Email Designer blocks and starter designs
 Registered the new-company details table as an Email Designer block and a starter design for each of the three

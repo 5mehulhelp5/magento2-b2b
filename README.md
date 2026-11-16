@@ -84,6 +84,7 @@ The emails can be redesigned visually with the [Email Designer](https://github.c
 save it. Then pick the saved design in this module's email template settings under **Stores › Configuration ›
 Tonyapps › B2B Company Account › Emails**. The default template is used until a design is picked. A new design starts
 from a ready-made copy of the module's email, with its company details table as a drag-and-drop block.
+The designer can preview and test-send the design with a real company from your store.
 
 ## Good to know
 
