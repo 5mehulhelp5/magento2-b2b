@@ -9,7 +9,7 @@ This file is the agreed scope — update it, don't re-litigate it. Merchant-faci
 - **All six phases built** (foundation, storefront accounts, roles & permissions, hierarchy roll-up, payment
   restrictions, store credit). Review fixes 2026-10-28 and 2026-10-30 applied; email redesign and QA fixes 2026-11-09;
   B2b core e2e (`b2b-company.spec.js` in the workspace `../e2e/tests/` Playwright suite, 6 tests) added 2026-11-10.
-- Module: `Tonyapps_B2b` / `tonyapps/module-b2b` / v0.1.0 / proprietary.
+- Module: `Tonyapps_B2b` / `tonyapps/module-b2b` / v0.1.0 / GPL-3.0-or-later.
 
 ### Environment (as developed)
 
@@ -346,6 +346,8 @@ vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/Tonyapps/B2b/Test
 
 ## Change history
 
+- **2026-11-16** — Released as free software under GPL-3.0-or-later (owner decision): `LICENSE` added,
+  `composer.json` license changed from `proprietary`, License section in the README.
 ### 2026-11-15 storefront links in admin-sent emails
 Built in an admin request (including the Email Designer preview), `company_url` in the approved email came out as an admin link with a secret key, because `Store::getUrl()` uses the area's `UrlInterface`. `CompanyEmail` now builds storefront links with its own non-shared `Magento\Framework\Url` (`frontendUrl`, `etc/di.xml`) scoped to the email's store; tests in `CompanyEmailTest`.
 
